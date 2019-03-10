@@ -406,12 +406,12 @@ static void avb_avtp_aaf_header_init(char* buf, struct snd_pcm_substream *substr
 	AVB_AVTP_AAF_HDR_SET_TU(hdr, 0);
 	hdr->h.f.streamId = 0;
 	hdr->h.f.avtpTS = 0;
-	hdr->h.f.format = avb_get_avtp_aaf_format(substream->runtime->format);
+	hdr->h.f.format = 4; //(u8)avb_get_avtp_aaf_format(substream->runtime->format);
 	AVB_AVTP_AAF_HDR_SET_NSR(hdr, avb_get_avtp_aaf_nsr(params_rate(hw_params)));
-	AVB_AVTP_AAF_HDR_SET_CPF(hdr, params_channels(hw_params));
-	hdr->h.f.bitDepth = substream->runtime->sample_bits;
+	hdr->h.f.cpf = (u8)params_channels(hw_params);
+	hdr->h.f.bitDepth = 16; //(u8)substream->runtime->sample_bits;
 	hdr->h.f.streamDataLen = 0;
-	AVB_AVTP_AAF_HDR_SET_SP(hdr, 1);
+	AVB_AVTP_AAF_HDR_SET_SP(hdr, 0);
 	AVB_AVTP_AAF_HDR_SET_EVT(hdr, 0);
 }
 
@@ -643,8 +643,8 @@ static void avb_avtp_timer(unsigned long arg)
 			memcpy(&avbcard->sd.txBuf[txSize+bytesAvai], &avbcard->tx.tmpbuf[0], (bytesToCopy - bytesAvai));
 		}
 
-		hdr->h.f.avtpTS = avbdevice.txts[((avbcard->tx.hwnwIdx / avbcard->tx.periodsize) % AVB_MAX_TS_SLOTS)];
-		hdr->h.f.streamDataLen = bytesToCopy;
+		hdr->h.f.avtpTS = htonl(avbdevice.txts[((avbcard->tx.hwnwIdx / avbcard->tx.periodsize) % AVB_MAX_TS_SLOTS)]);
+		hdr->h.f.streamDataLen = htons(bytesToCopy);
 		txSize += bytesToCopy;
 
 		avbcard->sd.txiov.iov_base = avbcard->sd.txBuf;
