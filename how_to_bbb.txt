@@ -1,0 +1,26 @@
+alias armmake='make -j4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- '
+
+armmake bb.org_defconfig &&
+armmake bzImage
+armmake uImage dtbs LOADADDR=0x80008000 -j4 &&
+armmake modules -j4
+
+armmake INSTALL_MOD_PATH=/home/artur/export/rootfs modules_install
+
+
+//install kernel to sd card
+1. bone-debian-9.5-iot-armhf-2018-10-07-4gb.img.xz install to sd card
+2. install modules_install to a folder or directly to sd card
+3. copy dts folder from original immage to your own kernel version folder
+4. copy modules from modules_install step to sd card at the location parallel to original kernel
+5. copy zImage to vmlinuz-kernel-version into boot folder
+6. adapt uEvt.txt to start your kernel image, uname_r
+
+//install alsa-lib for avbtest compilation
+cone from alsa-lib github
+./gitinstall
+copy include/alsa to local path
+cd avbtest
+make
+
+//tcpdump
