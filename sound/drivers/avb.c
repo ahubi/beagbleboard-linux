@@ -551,14 +551,30 @@ static int avb_playback_copy(struct snd_pcm_substream *substream,
                        snd_pcm_uframes_t count)
 {
 	int err = 0;
+	size_t i = 0;
+	u8 b[2];
+	u16 tmp, tmp2;
 	struct avbcard *avbcard = snd_pcm_substream_chip(substream);
 
-	avb_log(AVB_KERN_INFO, KERN_INFO "avb_playback_copy: ch:%d, pos: %ld, count: %lu", channel, pos, count);
+	avb_log(AVB_KERN_INFO, KERN_INFO "avb_playback_copy: ch:%d, pos: %ld, count: %lu, coverting bytes: %lu ", 
+																												channel, pos, count, (count * avbcard->tx.framesize));
 
 	if((err = copy_from_user(&avbcard->tx.tmpbuf[(pos * avbcard->tx.framesize)], dst, (count * avbcard->tx.framesize))) != 0) {
 		avb_log(AVB_KERN_WARN, KERN_WARNING "avb_playback_copy copy from user fails: %d \n", err);
 		return -1;
 	}
+	//change to big endian format (network format)
+	//if (substream->runtime->format == SNDRV_PCM_FORMAT_S16_LE || substream->runtime->format == SNDRV_PCM_FORMAT_U16_LE){
+	for(i = 0; i < (count * avbcard->tx.framesize); i = i+2){
+		b[0] = avbcard->tx.tmpbuf[(pos * avbcard->tx.framesize)+i];
+		b[1] = avbcard->tx.tmpbuf[(pos * avbcard->tx.framesize)+i+1];
+		tmp = ((b[1] << 8) | b[0]);
+		tmp2 = htons(tmp);
+		//avbcard->tx.tmpbuf[(pos * avbcard->tx.framesize)+i] = avbcard->tx.tmpbuf[(pos * avbcard->tx.framesize)+i+1];
+		avbcard->tx.tmpbuf[(pos * avbcard->tx.framesize)+i] = tmp2;
+	}
+					
+	//}
 
 	avbcard->tx.pendingTxFrames  += count;
 	avbcard->tx.numBytesConsumed += (count * (substream->runtime->frame_bits / 8));

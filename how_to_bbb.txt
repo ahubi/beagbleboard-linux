@@ -24,3 +24,17 @@ cd avbtest
 make
 
 //tcpdump
+sudo apt install tcpdump
+
+// Run test on target
+// 1. start snd-hwdep.ko
+sudo insmod /lib/modules/4.4.155+/kernel/sound/core/snd-hwdep.ko &&
+sudo insmod snd-avb.ko &&
+lsmod |grep -i avb &&
+cd avbtest
+// 2. start snd-avb.ko
+sudo insmod /lib/modules/4.4.155+/kernel/sound/drivers/snd-avb.ko
+// 3. run test application
+./avbtest sine_48khz_16bit.wav
+// 4. record pcap, by default use eth0
+sudo tcpdump -w dumpfile.pcap
