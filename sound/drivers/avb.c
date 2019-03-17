@@ -404,7 +404,7 @@ static void avb_avtp_aaf_header_init(char* buf, struct snd_pcm_substream *substr
 	AVB_AVTP_AAF_HDR_SET_TSV(hdr, 1);
 	hdr->h.f.seqNo = 0;
 	AVB_AVTP_AAF_HDR_SET_TU(hdr, 0);
-	hdr->h.f.streamId = 0;
+	hdr->h.f.streamId = 0x91E0F000FE000001;
 	hdr->h.f.avtpTS = 0;
 	hdr->h.f.format = 4; //(u8)avb_get_avtp_aaf_format(substream->runtime->format);
 	AVB_AVTP_AAF_HDR_SET_NSR(hdr, avb_get_avtp_aaf_nsr(params_rate(hw_params)));
