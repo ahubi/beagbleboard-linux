@@ -136,6 +136,31 @@ static struct snd_pcm_hardware avb_capture_hw = {
         .periods_max =      4,
 };
 
+static u64 avb_change_to_big_endian_u64(u64 val)
+{
+	u64 test  = 0x1234567898765432;
+	u8* msb   = (u8*)&test;
+	u64 bval  = val;
+	u8* bytes = (u8*)&bval;
+	u8 tmp    = 0;
+
+	if(*msb != 0x12) {
+		tmp = bytes[0];
+		bytes[0] = bytes[7];
+		bytes[7] = tmp; 
+		tmp = bytes[1];
+		bytes[1] = bytes[6];
+		bytes[6] = tmp;
+		tmp = bytes[2];
+		bytes[2] = bytes[5];
+		bytes[5] = tmp;
+		tmp = bytes[3];
+		bytes[3] = bytes[4];
+		bytes[4] = tmp; 
+	}
+	return bval;
+}
+
 static u32 avb_change_to_big_endian(u32 val)
 {
 	u32 test  = 0x12345678;
@@ -404,7 +429,7 @@ static void avb_avtp_aaf_header_init(char* buf, struct snd_pcm_substream *substr
 	AVB_AVTP_AAF_HDR_SET_TSV(hdr, 1);
 	hdr->h.f.seqNo = 0;
 	AVB_AVTP_AAF_HDR_SET_TU(hdr, 0);
-	hdr->h.f.streamId = 0x91E0F000FE000001;
+	hdr->h.f.streamId = avb_change_to_big_endian_u64(0x91E0F000FE160110);
 	hdr->h.f.avtpTS = 0;
 	hdr->h.f.format = 4; //(u8)avb_get_avtp_aaf_format(substream->runtime->format);
 	AVB_AVTP_AAF_HDR_SET_NSR(hdr, avb_get_avtp_aaf_nsr(params_rate(hw_params)));
